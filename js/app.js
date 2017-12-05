@@ -6,7 +6,7 @@ var CONFIG = {
   padding: 30, // 默认画布的间隔
   bulletSize: 10, // 默认子弹长度
   bulletSpeed: 10, // 默认子弹的移动距离
-  enemySpeed: 7, // 默认敌人移动距离
+  enemySpeed: 2, // 默认敌人移动距离
   enemySize: 50, // 默认敌人的尺寸
   enemyGap: 10,  // 默认敌人之间的间距
   enemyIcon: './img/enemy.png', // 怪兽的图像
@@ -70,7 +70,7 @@ var GAME = {
   draw: function(ele){
     ctx.drawImage(ele.path, ele.x, ele.y, ele.w, ele.h);
   },
-  setStatus: function(status) {      //更新状态：start playing failed success
+  setStatus: function(status) { //更新状态：start playing failed success
     this.status = status;
     container.setAttribute("data-status", status);
   },
@@ -99,62 +99,22 @@ var GAME = {
   },
   update: function(){
     var k = this.keyBoard;
+    var self = this;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if(k.left == true){
+    if(k.space){
+      plane.shoot();
+    };
+    if(k.left){
       plane.moveLeft();
-      this.draw(plane);
     };
-    if(k.right == true){
+    if(k.right){
       plane.moveRight();
-      this.draw(plane);
-    };
-    if(k.space == true){ 
-      bullets.push(new Bullet());
-      k.space = false;
     };
 
     this.updateEle();
-    /*
-     *绘制元素
-     */
-    this.draw(plane);
-    for(var i = 0; i < bullets.length; i++){
-      var b = bullets[i];
-      if(b.y >= b.h + CONFIG.padding){
-        b.move(); 
-        b.draw(); 
-      }
-    }
-    var i = enemies.length;
-    while(i--){
-      var e = enemies[i];
-      switch(e.boomStatus){
-        case"alive": 
-          this.draw(e);
-          break;
-        case"booming":
-          /*
-           *老师，我在enemy.js里面定义boom对象的坐标等于enemies的坐标
-           *但如果这里用GAME.draw(e.boom)方法来绘制火花，boom坐标没有按enemies的变化而变化，为什么？
-           */  
-          // this.draw(e.boom);
-          ctx.drawImage(e.boomPath, e.x, e.y, e.w, e.h);
-          break;
-      }
-    }
 
-    requestAnimFrame(this.update.bind(this));
-  },
-  updateEle: function(){
-    var self = this;
-    var eneNeedDown = false;
-    var h = getHorizonObj(enemies);   
-    if(h.minX < this.eneLimitMinX || h.maxX > this.eneLimitMaxX){
-      eneNeedDown = true;
-    }
-    //成功消灭当前所有怪兽时退出游戏
-    if(enemies.length == 0){
+    //成功消灭当前level所有怪兽时退出游戏
+    if(enemies.length === 0){
       curScoreDiv.style.display = "none";
       plane = {};
       log(self.level);
@@ -165,9 +125,49 @@ var GAME = {
         self.renderLevel();
       }
       return; 
-    }  
+    }
+    //通过所有level,游戏结束
+    if(this.updateEle() === 'end'){
+      return;
+    }
+    /*
+     *绘制元素
+     */    
+    this.draw(plane);
 
-    var i = enemies.length;  
+    for(var i = 0; i < bullets.length; i++){
+      var b = bullets[i];
+      if(b.y >= b.h + CONFIG.padding){
+        b.move(); 
+        b.draw();
+      }
+    }
+    
+    var i = enemies.length;
+    while(i--){
+      var e = enemies[i];
+      switch(e.boomStatus){
+        case"alive": 
+          this.draw(e);
+          break;
+        case"booming":
+          ctx.drawImage(e.boomPath, e.x, e.y, e.w, e.h);
+          break;
+      }
+    }
+
+    requestAnimFrame(this.update.bind(this));
+
+  },
+  updateEle: function(){
+    var self = this;
+    var eneNeedDown = false;
+    var h = getHorizonObj(enemies);
+    if(h.minX < this.eneLimitMinX || h.maxX > this.eneLimitMaxX){
+      eneNeedDown = true;
+    }
+
+    var i = enemies.length;
     while(i--){
       var e = enemies[i];
       if(eneNeedDown === true){
@@ -202,7 +202,7 @@ var GAME = {
           curScore.innerText = this.score;
           break;
       } 
-            /*
+      /*
        *怪兽到达底部边界时退出游戏
        */
       if(e.y > self.eneLimitMaxY - CONFIG.enemySize){
@@ -212,7 +212,7 @@ var GAME = {
         plane = {};
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         self.setStatus('failed'); 
-        return;
+        return 'end';
       }     
     }
   },

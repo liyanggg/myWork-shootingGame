@@ -3,7 +3,7 @@ var KeyBoard = function(){
       space: false,
       left: false,
       right: false,
-      lastShoot: Date.now(),
+      lastShoot: Date.now()
   
     };
     k.keydown = function(e){
@@ -11,16 +11,20 @@ var KeyBoard = function(){
       switch(key){
         case 37:
           k.left = true;
+          k.right = false;
           break;
         case 39:
           k.right = true;
+          k.left = false;
           break;
         case 32:
-          if (Date.now() - k.lastShoot > 150) {
-          k.space = true;
-          k.lastShoot = new Date();
-          break;
-          }
+        k.space = true;
+        
+          // if (Date.now() - k.lastShoot > 100) {
+          //   k.space = true;
+          //   k.lastShoot = new Date();
+          //   break;
+          // }
         }
     };
     k.keyup = function(e) {
@@ -37,8 +41,8 @@ var KeyBoard = function(){
           break;
       }
     };
-    document.onkeydown = k.keydown;
-    document.onkeyup = k.keyup;
+    document.onkeydown = k.keydown.bind(this);
+    document.onkeyup = k.keyup.bind(this);
     return k;
   };
   

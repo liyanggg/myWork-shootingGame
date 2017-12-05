@@ -6,6 +6,7 @@ function Plane() {
   this.path = imageFromPath(CONFIG.planeIcon);
   this.speed = CONFIG.planeSpeed;
   this.d = CONFIG.padding + this.speed;
+  this.lastShoot = Date.now();
 
 }
 Plane.prototype.moveLeft = function(){
@@ -18,5 +19,11 @@ Plane.prototype.moveRight = function(){
   if(this.x + this.w <= canvas.width - this.d){
     ctx.clearRect(this.x, this.y, this.w, this.h);
     this.x += this.speed; 
+  }
+}
+Plane.prototype.shoot = function(){
+  if (Date.now() - this.lastShoot > 150) {
+    bullets.push(new Bullet());    
+    this.lastShoot = new Date();
   }
 }
